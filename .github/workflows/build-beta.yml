@@ -1,0 +1,122 @@
+name: Build beta
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  BOWIE_VERSION: 0.4.5
+  JUCE_TAG: 9.0.1
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Check out Bowie
+        uses: actions/checkout@v5
+
+      - name: Check out JUCE
+        uses: actions/checkout@v5
+        with:
+          repository: juce-framework/JUCE
+          ref: ${{ env.JUCE_TAG }}
+          path: JUCE
+
+      - name: Configure
+        shell: pwsh
+        run: >-
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          -DBOWIE_JUCE_SOURCE_DIR="$env:GITHUB_WORKSPACE/JUCE"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Test synthesis and presets
+        shell: pwsh
+        run: .\build\BowieSmokeTest_artefacts\Release\BowieSmokeTest.exe
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $package = "Bowie-$env:BOWIE_VERSION-Windows-x64"
+          New-Item -ItemType Directory -Path "$package/Artwork" -Force | Out-Null
+          Copy-Item "build/Bowie_artefacts/Release/Standalone/Bowie.exe" $package
+          Copy-Item "build/Bowie_artefacts/Release/VST3/Bowie.vst3" $package -Recurse
+          Copy-Item "Assets/BowieArtwork-OffWhiteGradient.png","Assets/BowieArtwork.png","Assets/BowieIcon.png" "$package/Artwork"
+          Copy-Item "README.md","BETA_TESTING.md","THIRD_PARTY_NOTICES.md" $package
+          Compress-Archive -Path $package -DestinationPath "$package.zip"
+
+      - name: Upload Windows beta
+        uses: actions/upload-artifact@v7
+        with:
+          name: Bowie-${{ env.BOWIE_VERSION }}-Windows-x64
+          path: Bowie-${{ env.BOWIE_VERSION }}-Windows-x64.zip
+          if-no-files-found: error
+
+  macos:
+    name: macOS universal
+    runs-on: macos-14
+    steps:
+      - name: Check out Bowie
+        uses: actions/checkout@v5
+
+      - name: Check out JUCE
+        uses: actions/checkout@v5
+        with:
+          repository: juce-framework/JUCE
+          ref: ${{ env.JUCE_TAG }}
+          path: JUCE
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Xcode
+          -DBOWIE_JUCE_SOURCE_DIR="$GITHUB_WORKSPACE/JUCE"
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Test synthesis and presets
+        run: ./build/BowieSmokeTest_artefacts/Release/BowieSmokeTest
+
+      - name: Package
+        run: |
+          package="Bowie-${BOWIE_VERSION}-macOS-universal"
+          mkdir -p "$package/Artwork"
+          cp -R "build/Bowie_artefacts/Release/Standalone/Bowie.app" "$package/"
+          cp -R "build/Bowie_artefacts/Release/VST3/Bowie.vst3" "$package/"
+          cp Assets/BowieArtwork-OffWhiteGradient.png Assets/BowieArtwork.png Assets/BowieIcon.png "$package/Artwork/"
+          cp README.md BETA_TESTING.md THIRD_PARTY_NOTICES.md "$package/"
+          ditto -c -k --sequesterRsrc --keepParent "$package" "$package.zip"
+
+      - name: Upload macOS beta
+        uses: actions/upload-artifact@v7
+        with:
+          name: Bowie-${{ env.BOWIE_VERSION }}-macOS-universal
+          path: Bowie-${{ env.BOWIE_VERSION }}-macOS-universal.zip
+          if-no-files-found: error
+
+  prerelease:
+    name: Publish tagged prerelease
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v7
+        with:
+          path: release-assets
+
+      - name: Create GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mapfile -d '' files < <(find release-assets -name '*.zip' -print0)
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" --prerelease --generate-notes --title "Bowie $GITHUB_REF_NAME"
