@@ -123,6 +123,7 @@ jobs:
       - name: Create GitHub prerelease
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           mapfile -d '' files < <(find release-assets -name '*.zip' -print0)
           gh release create "$GITHUB_REF_NAME" "${files[@]}" --prerelease --generate-notes --title "Bowie $GITHUB_REF_NAME"
