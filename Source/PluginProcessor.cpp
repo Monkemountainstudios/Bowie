@@ -61,7 +61,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BowieAudioProcessor::createP
 
 juce::StringArray BowieAudioProcessor::factoryPresetNames()
 {
-    return { "Flute", "Into the Forrest", "Saloon", "Fanfare",
+    return { "Flute", "Into the Forest", "Saloon", "Fanfare",
              "Dirty Train", "3 Flutes", "Tape E-Piano" };
 }
 

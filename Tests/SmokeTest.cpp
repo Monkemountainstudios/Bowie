@@ -253,7 +253,7 @@ int main(int argc, char** argv)
     BowieAudioProcessor presetProcessor;
     const bool presetNamesStable =
         BowieAudioProcessor::factoryPresetNames().joinIntoString("|")
-        == "Flute|Into the Forrest|Saloon|Fanfare|Dirty Train|3 Flutes|Tape E-Piano";
+        == "Flute|Into the Forest|Saloon|Fanfare|Dirty Train|3 Flutes|Tape E-Piano";
     presetProcessor.applyFactoryPreset(1);
     const auto closeTo = [](float actual, float expected)
     {

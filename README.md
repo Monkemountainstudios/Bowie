@@ -71,7 +71,7 @@ JUCE instrument that treats sampled body tones as if they were being bowed.
 - A zero-volume layer remains selectable but its VOICE label and body menu dim
   to 40 percent opacity, making inactive layers immediately legible without a
   redundant `No Tone` menu entry.
-- The factory preset menu includes `Flute`, `Into the Forrest`, `Saloon`, `Fanfare`,
+- The factory preset menu includes `Flute`, `Into the Forest`, `Saloon`, `Fanfare`,
   `Dirty Train`, `3 Flutes`, and `Tape E-Piano`.
   Each recalls all three bodies plus its complete envelope, bow, strain,
   filter, resonance, layer balance, and master settings.
