@@ -62,6 +62,16 @@ bool BowieSampleSet::loadAll()
     tones[8].anchorCount = 3;
     tones[9].name = "Vibra";
     tones[9].anchorCount = 3;
+    tones[10].name = "Harp";
+    tones[10].anchorCount = 2;
+    tones[11].name = "Harpsichord";
+    tones[11].anchorCount = 3;
+    tones[12].name = "Oboe";
+    tones[12].anchorCount = 3;
+    tones[13].name = "Farfisa";
+    tones[13].anchorCount = 3;
+    tones[14].name = "Marimba";
+    tones[14].anchorCount = 3;
 
     const bool tonesLoaded =
         loadAnchor(tones[0], 0, 36, BinaryData::Bassoon_C2_wav, BinaryData::Bassoon_C2_wavSize)
@@ -92,7 +102,21 @@ bool BowieSampleSet::loadAll()
         && loadAnchor(tones[8], 2, 61, BinaryData::Tuba_C4_wav, BinaryData::Tuba_C4_wavSize)
         && loadAnchor(tones[9], 0, 36, BinaryData::Vibra_C2_wav, BinaryData::Vibra_C2_wavSize)
         && loadAnchor(tones[9], 1, 48, BinaryData::Vibra_C3_wav, BinaryData::Vibra_C3_wavSize)
-        && loadAnchor(tones[9], 2, 60, BinaryData::Vibra_C4_wav, BinaryData::Vibra_C4_wavSize);
+        && loadAnchor(tones[9], 2, 60, BinaryData::Vibra_C4_wav, BinaryData::Vibra_C4_wavSize)
+        && loadAnchor(tones[10], 0, 48, BinaryData::Harp_C3_wav, BinaryData::Harp_C3_wavSize)
+        && loadAnchor(tones[10], 1, 72, BinaryData::Harp_C5_wav, BinaryData::Harp_C5_wavSize)
+        && loadAnchor(tones[11], 0, 36, BinaryData::Harpsichord_C2_wav, BinaryData::Harpsichord_C2_wavSize)
+        && loadAnchor(tones[11], 1, 48, BinaryData::Harpsichord_C3_wav, BinaryData::Harpsichord_C3_wavSize)
+        && loadAnchor(tones[11], 2, 60, BinaryData::Harpsichord_C4_wav, BinaryData::Harpsichord_C4_wavSize)
+        && loadAnchor(tones[12], 0, 46, BinaryData::Oboe_Bb2_wav, BinaryData::Oboe_Bb2_wavSize)
+        && loadAnchor(tones[12], 1, 58, BinaryData::Oboe_Bb3_wav, BinaryData::Oboe_Bb3_wavSize)
+        && loadAnchor(tones[12], 2, 70, BinaryData::Oboe_Bb4_wav, BinaryData::Oboe_Bb4_wavSize)
+        && loadAnchor(tones[13], 0, 36, BinaryData::Farfisa_C2_wav, BinaryData::Farfisa_C2_wavSize)
+        && loadAnchor(tones[13], 1, 48, BinaryData::Farfisa_C3_wav, BinaryData::Farfisa_C3_wavSize)
+        && loadAnchor(tones[13], 2, 60, BinaryData::Farfisa_C4_wav, BinaryData::Farfisa_C4_wavSize)
+        && loadAnchor(tones[14], 0, 36, BinaryData::Marimba_C2_wav, BinaryData::Marimba_C2_wavSize)
+        && loadAnchor(tones[14], 1, 48, BinaryData::Marimba_C3_wav, BinaryData::Marimba_C3_wavSize)
+        && loadAnchor(tones[14], 2, 60, BinaryData::Marimba_C4_wav, BinaryData::Marimba_C4_wavSize);
 
     return tonesLoaded
         && bowSustain.load(BinaryData::scraping_bow_hp90_wav, BinaryData::scraping_bow_hp90_wavSize)
@@ -120,7 +144,8 @@ const BowieToneModel& BowieSampleSet::toneForIndex(int index) const
 juce::StringArray BowieSampleSet::toneNames()
 {
     return { "Bassoon", "Church", "English Horn", "Flute", "Horn",
-             "Piano", "Rhodes", "Trumpet", "Tuba", "Vibra" };
+             "Piano", "Rhodes", "Trumpet", "Tuba", "Vibra",
+             "Harp", "Harpsichord", "Oboe", "Farfisa", "Marimba" };
 }
 
 void DualHeadLoopPlayer::start(const BowieLoadedSample* newSample,
@@ -227,26 +252,37 @@ bool BowieVoice::canPlaySound(juce::SynthesiserSound* sound)
 
 void BowieVoice::updateEnvelopeParameters()
 {
-    juce::ADSR::Parameters settings;
-    settings.attack = parameterValue(apvts, "attack");
-    settings.decay = parameterValue(apvts, "decay");
-    settings.sustain = parameterValue(apvts, "sustain");
-    settings.release = parameterValue(apvts, "release");
-    envelope.setParameters(settings);
+    constexpr const char* attackIds[] = { "attack", "attack2", "attack3" };
+    constexpr const char* decayIds[] = { "decay", "decay2", "decay3" };
+    constexpr const char* sustainIds[] = { "sustain", "sustain2", "sustain3" };
+    constexpr const char* releaseIds[] = { "release", "release2", "release3" };
+    for (int layer = 0; layer < bodyLayerCount; ++layer)
+    {
+        juce::ADSR::Parameters settings;
+        settings.attack = parameterValue(apvts, attackIds[layer]);
+        settings.decay = parameterValue(apvts, decayIds[layer]);
+        settings.sustain = parameterValue(apvts, sustainIds[layer]);
+        settings.release = parameterValue(apvts, releaseIds[layer]);
+        layerEnvelopes[static_cast<size_t>(layer)].setParameters(settings);
+    }
 }
 
 void BowieVoice::startNote(int midiNoteNumber, float velocity,
                            juce::SynthesiserSound*, int pitchWheelPosition)
 {
     outputRate = getSampleRate();
-    envelope.setSampleRate(outputRate);
+    for (auto& envelope : layerEnvelopes)
+        envelope.setSampleRate(outputRate);
     constexpr double envelopeGlideSeconds = 0.012;
     envelopeGlideCoefficient = static_cast<float>(1.0
         - std::exp(-1.0 / (outputRate * envelopeGlideSeconds)));
-    smoothedEnvelope = 0.0f;
+    smoothedEnvelopes.fill(0.0f);
     updateEnvelopeParameters();
-    envelope.reset();
-    envelope.noteOn();
+    for (auto& envelope : layerEnvelopes)
+    {
+        envelope.reset();
+        envelope.noteOn();
+    }
 
     noteVelocity = juce::jlimit(0.0f, 1.0f, velocity);
     noteAgeSeconds = 0.0;
@@ -269,15 +305,16 @@ void BowieVoice::startNote(int midiNoteNumber, float velocity,
     hardAttackMix = velocityHardMix;
     softAttackMix = std::sqrt(juce::jmax(0.0f, 1.0f - hardAttackMix * hardAttackMix));
 
-    const float attackSeconds = parameterValue(apvts, "attack");
     constexpr const char* toneParameterIds[] = { "tone", "tone2", "tone3" };
     constexpr const char* levelParameterIds[] = {
         "voice1Level", "voice2Level", "voice3Level"
     };
+    constexpr const char* attackParameterIds[] = { "attack", "attack2", "attack3" };
 
     for (int layer = 0; layer < bodyLayerCount; ++layer)
     {
         const int toneIndex = juce::roundToInt(parameterValue(apvts, toneParameterIds[layer]));
+        const float attackSeconds = parameterValue(apvts, attackParameterIds[layer]);
         layerToneIndices[static_cast<size_t>(layer)] = toneIndex;
         layerLevels[static_cast<size_t>(layer)].reset(outputRate, 0.020);
         layerLevels[static_cast<size_t>(layer)].setCurrentAndTargetValue(
@@ -326,8 +363,20 @@ void BowieVoice::startNote(int midiNoteNumber, float velocity,
             double loopStart = 0.0;
             double loopEnd = 0.0;
             double loopCrossfadeSeconds = 0.22;
-            const bool isPianoFamily = toneIndex == 5 || toneIndex == 6;
-            if (isPianoFamily)
+            const bool isDecayingBody = toneIndex == 5 || toneIndex == 6
+                                     || toneIndex == 10 || toneIndex == 11
+                                     || toneIndex == 14;
+            const bool isMarimba = toneIndex == 14;
+            if (isMarimba)
+            {
+                // Preserve the complete mallet strike, then hand over gradually
+                // to a compact section that still contains pitched wood resonance.
+                loopStart = sample.sampleRate * (0.30 + 0.08 * random.nextDouble());
+                loopEnd = juce::jmin(length - sample.sampleRate * 0.12,
+                    sample.sampleRate * (0.88 + 0.14 * random.nextDouble()));
+                loopCrossfadeSeconds = 0.24;
+            }
+            else if (isDecayingBody)
             {
                 loopEnd = length - sample.sampleRate * (0.18 + 0.12 * random.nextDouble());
                 const double loopDuration = sample.sampleRate * (1.45 + 0.45 * random.nextDouble());
@@ -346,10 +395,12 @@ void BowieVoice::startNote(int midiNoteNumber, float velocity,
             const double vibraHammerSkipSeconds = isLowVibraAnchor
                 ? 0.11 * (1.0 - std::exp(-static_cast<double>(attackSeconds) / 0.030))
                 : 0.0;
+            const double bodyStartSeconds = isMarimba
+                ? 0.0
+                : 0.12 + 0.08 * random.nextDouble() + vibraHammerSkipSeconds;
             tonePlayers[static_cast<size_t>(layer)][static_cast<size_t>(player)].start(
                 &sample,
-                sample.sampleRate * (0.12 + 0.08 * random.nextDouble()
-                                   + vibraHammerSkipSeconds),
+                sample.sampleRate * bodyStartSeconds,
                 loopStart,
                 loopEnd,
                 loopCrossfadeSeconds,
@@ -376,10 +427,12 @@ void BowieVoice::startNote(int midiNoteNumber, float velocity,
 void BowieVoice::stopNote(float, bool allowTailOff)
 {
     if (allowTailOff)
-        envelope.noteOff();
+        for (auto& envelope : layerEnvelopes)
+            envelope.noteOff();
     else
     {
-        envelope.reset();
+        for (auto& envelope : layerEnvelopes)
+            envelope.reset();
         clearCurrentNote();
     }
 }
@@ -443,7 +496,8 @@ void BowieVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
 
         hasAudibleLayer = true;
         const int toneIndex = layerToneIndices[static_cast<size_t>(layer)];
-        const bool decayingBody = toneIndex == 5 || toneIndex == 6 || toneIndex == 9;
+        const bool decayingBody = toneIndex == 5 || toneIndex == 6 || toneIndex == 9
+                               || toneIndex == 10 || toneIndex == 11 || toneIndex == 14;
         everyAudibleLayerDecays = everyAudibleLayerDecays && decayingBody;
         if (toneIndex == 6)
             bowBodyDecaySeconds = juce::jmax(bowBodyDecaySeconds, 4.2);
@@ -489,10 +543,21 @@ void BowieVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
         for (int layer = 0; layer < bodyLayerCount; ++layer)
             layerGains[static_cast<size_t>(layer)]
                 = layerLevels[static_cast<size_t>(layer)].getNextValue();
-        const float rawEnvelopeGain = envelope.getNextSample();
-        smoothedEnvelope += envelopeGlideCoefficient
-                          * (rawEnvelopeGain - smoothedEnvelope);
-        const float envelopeGain = smoothedEnvelope;
+        std::array<float, bodyLayerCount> envelopeGains;
+        float combinedEnvelope = 0.0f;
+        float combinedEnvelopeWeight = 0.0f;
+        for (int layer = 0; layer < bodyLayerCount; ++layer)
+        {
+            const auto layerIndex = static_cast<size_t>(layer);
+            const float rawEnvelope = layerEnvelopes[layerIndex].getNextSample();
+            smoothedEnvelopes[layerIndex] += envelopeGlideCoefficient
+                * (rawEnvelope - smoothedEnvelopes[layerIndex]);
+            envelopeGains[layerIndex] = smoothedEnvelopes[layerIndex];
+            combinedEnvelope += envelopeGains[layerIndex] * layerGains[layerIndex];
+            combinedEnvelopeWeight += layerGains[layerIndex];
+        }
+        if (combinedEnvelopeWeight > 0.0001f)
+            combinedEnvelope /= combinedEnvelopeWeight;
         const float deClickGain = static_cast<float>(juce::jlimit(0.0, 1.0,
             noteAgeSeconds / 0.006));
 
@@ -506,7 +571,7 @@ void BowieVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
                             * toneGains[layerIndex][0]
                        + tonePlayers[layerIndex][1].sampleForChannel(channel)
                             * toneGains[layerIndex][1])
-                      * layerGains[layerIndex];
+                       * layerGains[layerIndex] * envelopeGains[layerIndex];
             }
             tone *= 0.50f;
             const float sustainBow = bowPlayer.sampleForChannel(channel)
@@ -515,8 +580,9 @@ void BowieVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
                                     * softAttackMix * 0.70f;
             const float hardCatch = oneShotSample(sampleSet.hardAttack, channel, hardAttackPosition)
                                   * hardAttackMix * 0.60f;
-            const float mixed = (tone + bowMixGain * (sustainBow + gentleCatch + hardCatch))
-                              * gestureVelocityGain * envelopeGain * deClickGain;
+            const float mixed = (tone + bowMixGain * (sustainBow + gentleCatch + hardCatch)
+                                      * combinedEnvelope)
+                              * gestureVelocityGain * deClickGain;
             outputBuffer.addSample(channel, startSample + frame, std::tanh(mixed));
         }
 
@@ -537,7 +603,12 @@ void BowieVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
             humanVibratoPhase -= juce::MathConstants<float>::twoPi;
         noteAgeSeconds += 1.0 / outputRate;
 
-        if (!envelope.isActive() && smoothedEnvelope < 1.0e-5f)
+        bool anyEnvelopeActive = false;
+        for (int layer = 0; layer < bodyLayerCount; ++layer)
+            anyEnvelopeActive = anyEnvelopeActive
+                || layerEnvelopes[static_cast<size_t>(layer)].isActive()
+                || smoothedEnvelopes[static_cast<size_t>(layer)] >= 1.0e-5f;
+        if (!anyEnvelopeActive)
         {
             clearCurrentNote();
             break;

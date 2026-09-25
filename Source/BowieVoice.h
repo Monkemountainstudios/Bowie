@@ -28,7 +28,7 @@ struct BowieToneModel
 
 struct BowieSampleSet
 {
-    static constexpr int toneCount = 10;
+    static constexpr int toneCount = 15;
 
     bool loadAll();
     bool isReady() const;
@@ -105,8 +105,8 @@ private:
     juce::AudioProcessorValueTreeState& apvts;
     std::atomic<float>& sharedModWheelAmount;
     const juce::AudioBuffer<float>& sharedVibratoCents;
-    juce::ADSR envelope;
-    float smoothedEnvelope = 0.0f;
+    std::array<juce::ADSR, bodyLayerCount> layerEnvelopes;
+    std::array<float, bodyLayerCount> smoothedEnvelopes { 0.0f, 0.0f, 0.0f };
     float envelopeGlideCoefficient = 1.0f;
     std::array<std::array<DualHeadLoopPlayer, 2>, bodyLayerCount> tonePlayers;
     std::array<std::array<double, 2>, bodyLayerCount> baseToneRatios

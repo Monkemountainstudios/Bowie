@@ -251,6 +251,15 @@ int main(int argc, char** argv)
               << " layering=" << (layeringStable ? "pass" : "fail") << std::endl;
 
     BowieAudioProcessor presetProcessor;
+    const bool individualEnvelopesPresent =
+        presetProcessor.parameters.getParameter("attack2") != nullptr
+        && presetProcessor.parameters.getParameter("decay2") != nullptr
+        && presetProcessor.parameters.getParameter("sustain2") != nullptr
+        && presetProcessor.parameters.getParameter("release2") != nullptr
+        && presetProcessor.parameters.getParameter("attack3") != nullptr
+        && presetProcessor.parameters.getParameter("decay3") != nullptr
+        && presetProcessor.parameters.getParameter("sustain3") != nullptr
+        && presetProcessor.parameters.getParameter("release3") != nullptr;
     const bool presetNamesStable =
         BowieAudioProcessor::factoryPresetNames().joinIntoString("|")
         == "Flute|Into the Forest|Saloon|Fanfare|Dirty Train|3 Flutes|Tape E-Piano";
@@ -264,6 +273,8 @@ int main(int argc, char** argv)
         && closeTo(presetProcessor.parameters.getRawParameterValue("tone2")->load(), 9.0f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("tone3")->load(), 0.0f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("attack")->load(), 0.468f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("attack2")->load(), 0.468f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("attack3")->load(), 0.468f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("bowLevel")->load(), 0.043f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("resonance")->load(), 0.328f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("voice1Level")->load(), 0.443f)
@@ -284,9 +295,21 @@ int main(int argc, char** argv)
         && closeTo(presetProcessor.parameters.getRawParameterValue("voice2Level")->load(), 0.180f);
     presetProcessor.applyFactoryPreset(3);
     const bool fanfarePresetStable =
-        closeTo(presetProcessor.parameters.getRawParameterValue("tone")->load(), 0.0f)
-        && closeTo(presetProcessor.parameters.getRawParameterValue("tone2")->load(), 2.0f)
-        && closeTo(presetProcessor.parameters.getRawParameterValue("tone3")->load(), 8.0f)
+        closeTo(presetProcessor.parameters.getRawParameterValue("tone")->load(), 13.0f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("tone2")->load(), 12.0f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("tone3")->load(), 7.0f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("attack")->load(), 0.002f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("decay")->load(), 0.862f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("sustain")->load(), 0.658f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("release")->load(), 0.213f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("attack2")->load(), 0.739f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("decay2")->load(), 0.439f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("sustain2")->load(), 0.461f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("release2")->load(), 0.239f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("attack3")->load(), 0.645f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("decay3")->load(), 0.773f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("sustain3")->load(), 0.355f)
+        && closeTo(presetProcessor.parameters.getRawParameterValue("release3")->load(), 0.239f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("cutoff")->load(), 2900.0f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("voice2Level")->load(), 0.623f);
     presetProcessor.applyFactoryPreset(4);
@@ -311,7 +334,8 @@ int main(int argc, char** argv)
         && closeTo(presetProcessor.parameters.getRawParameterValue("tone3")->load(), 9.0f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("cutoff")->load(), 1124.0f)
         && closeTo(presetProcessor.parameters.getRawParameterValue("voice2Level")->load(), 0.607f);
-    const bool presetsStable = presetNamesStable && forestPresetStable && initPresetStable
+    const bool presetsStable = individualEnvelopesPresent && presetNamesStable
+                            && forestPresetStable && initPresetStable
                             && saloonPresetStable && fanfarePresetStable
                             && dirtyTrainPresetStable && threeFlutesPresetStable
                             && tapeEPianoPresetStable;

@@ -8,14 +8,21 @@ JUCE instrument that treats sampled body tones as if they were being bowed.
 
 ## Current voice model
 
-- Ten selectable body models: Bassoon, Church, English Horn, Flute, Horn,
-  Piano, Rhodes, Trumpet, Tuba, and Vibra.
+- Fifteen selectable body models: Bassoon, Church, English Horn, Flute, Horn,
+  Piano, Rhodes, Trumpet, Tuba, Vibra, Harp, Harpsichord, Oboe, Farfisa, and
+  Marimba.
 - Each model uses its real recorded octave anchors rather than stretching one
   sample across the full keyboard. Adjacent anchors are blended continuously
   with equal-power gains over the octave, avoiding a hard timbre switch.
 - Flute now uses C3/C4/C5. English Horn intentionally uses only C3/C4, matching
   the useful real-world range represented by the source recordings; notes
   outside that span use the nearest anchor.
+- Harp uses C3/C5 anchors, Harpsichord uses C2/C3/C4, and Oboe uses its recorded
+  B-flat 2/3/4 anchors. Harp and Harpsichord retain their natural decays before
+  entering the late sustain loop.
+- Farfisa uses stable C2/C3/C4 sustain loops. Marimba uses C2/C3/C4, preserves
+  each complete mallet strike, and crossfades into a compact mid-decay resonance
+  loop rather than repeating the transient.
 - Per-anchor RMS compensation is deliberately bounded, reducing distracting
   level changes without flattening each instrument's natural dynamics.
 - Independent two-head loops for the body and high-pass-filtered six-second
@@ -45,12 +52,12 @@ JUCE instrument that treats sampled body tones as if they were being bowed.
 - Pitch strain uses slower note-level randomized rates, decay, depth, and
   initial pull, so repeated gestures retain the same character without tracing
   the exact same motion.
-- Piano and Rhodes play their recorded decays before entering later, compact
-  tail loops with a longer crossfade, producing a quieter pad-like sustain
-  instead of an early echo.
-- The continuous bow bed follows Piano, Rhodes, and Vibra downward instead of
-  remaining exposed after those naturally decaying bodies have settled. When
-  layering, it fades only if every audible body is one of those three.
+- Piano, Rhodes, Harp, and Harpsichord play their recorded decays before entering
+  later, compact tail loops with a longer crossfade, producing a quieter
+  pad-like sustain instead of an early echo.
+- The continuous bow bed follows Piano, Rhodes, Vibra, Harp, Harpsichord, and Marimba
+  downward instead of remaining exposed after those naturally decaying bodies
+  have settled. When layering, it fades only if every audible body decays.
 - Vibra's C2 anchor retains its complete hammer at zero attack, then advances
   progressively past the longer hammer tail as ATTACK rises so its response
   agrees with the two upper anchors.
@@ -65,16 +72,19 @@ JUCE instrument that treats sampled body tones as if they were being bowed.
 - The instrument body fades from warm ivory at the top into royal blue at the
   bottom; panel labels use a fine ivory keyline and dark shadow for contrast.
 - Twelve-note polyphony with three independently selectable body layers per
-  note, smooth V1/V2/V3 gains, final master gain, shared ADSR, bow level, pitch
-  strain, pitch wheel, and an on-screen keyboard. V1 defaults to the original
-  single-body sound while V2 and V3 begin muted.
+  note, smooth V1/V2/V3 gains, final master gain, individual per-layer ADSR,
+  bow level, pitch strain, pitch wheel, and an on-screen keyboard. A compact
+  three-position switch beside the ADSR bank selects the envelope being edited.
+  V1 defaults to the original single-body sound while V2 and V3 begin muted.
 - A zero-volume layer remains selectable but its VOICE label and body menu dim
   to 40 percent opacity, making inactive layers immediately legible without a
   redundant `No Tone` menu entry.
 - The factory preset menu includes `Flute`, `Into the Forest`, `Saloon`, `Fanfare`,
   `Dirty Train`, `3 Flutes`, and `Tape E-Piano`.
-  Each recalls all three bodies plus its complete envelope, bow, strain,
+  Each recalls all three bodies plus all three envelopes, bow, strain,
   filter, resonance, layer balance, and master settings.
+- `Fanfare` combines Farfisa, Oboe, and Trumpet with a separate envelope for
+  each layer, pairing the Farfisa's bright edge with softer winds and brass.
 - The supplied multi-instrument artwork is used for the app/plugin icon and in
   the interface. Its ivory, gold, royal blue, red, and black palette now drives
   the instrument UI. Release artwork lives in `Assets/BowieArtwork.png`.
@@ -95,7 +105,7 @@ JUCE instrument that treats sampled body tones as if they were being bowed.
   once, avoiding duplicate instances competing for the same driver.
 - A fixed 6 ms safety ramp prevents waveform discontinuities even when the
   musical Attack control is set to zero.
-- The factory envelope is Attack 0.046 s, Decay 0.453 s, Sustain 0.455, and
+- Each factory envelope is Attack 0.046 s, Decay 0.453 s, Sustain 0.455, and
   Release 0.238 s. A 12 ms continuous follower rounds every ADSR hand-off and
   live parameter change so stage boundaries glide rather than step.
 

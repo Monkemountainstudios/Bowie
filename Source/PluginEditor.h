@@ -45,6 +45,7 @@ private:
     void configureToneSelector(juce::ComboBox&, juce::Label&, const juce::String& text,
                                const juce::String& parameterId,
                                std::unique_ptr<ComboAttachment>& attachment);
+    void selectEnvelope(int voiceIndex);
     void updateLayerMenuBrightness();
 
     BowieAudioProcessor& processor;
@@ -60,6 +61,8 @@ private:
     juce::Label toneLabel, tone2Label, tone3Label, subtitle;
     juce::ComboBox preset;
     juce::Label presetLabel;
+    juce::Label envelopeVoiceLabel;
+    std::array<juce::TextButton, 3> envelopeVoiceButtons;
     juce::Image brandImage;
     juce::Typeface::Ptr labelTypeface;
     juce::Typeface::Ptr wordmarkTypeface;

@@ -30,6 +30,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout BowieAudioProcessor::createP
         Range(0.0f, 1.0f, 0.001f), 0.455f));
     result.push_back(std::make_unique<Parameter>("release", "Release",
         Range(0.01f, 6.0f, 0.001f, 0.38f), 0.238f, "s"));
+    result.push_back(std::make_unique<Parameter>("attack2", "Voice 2 Attack",
+        Range(0.0f, 4.0f, 0.001f, 0.38f), 0.046f, "s"));
+    result.push_back(std::make_unique<Parameter>("decay2", "Voice 2 Decay",
+        Range(0.01f, 3.0f, 0.001f, 0.4f), 0.453f, "s"));
+    result.push_back(std::make_unique<Parameter>("sustain2", "Voice 2 Sustain",
+        Range(0.0f, 1.0f, 0.001f), 0.455f));
+    result.push_back(std::make_unique<Parameter>("release2", "Voice 2 Release",
+        Range(0.01f, 6.0f, 0.001f, 0.38f), 0.238f, "s"));
+    result.push_back(std::make_unique<Parameter>("attack3", "Voice 3 Attack",
+        Range(0.0f, 4.0f, 0.001f, 0.38f), 0.046f, "s"));
+    result.push_back(std::make_unique<Parameter>("decay3", "Voice 3 Decay",
+        Range(0.01f, 3.0f, 0.001f, 0.4f), 0.453f, "s"));
+    result.push_back(std::make_unique<Parameter>("sustain3", "Voice 3 Sustain",
+        Range(0.0f, 1.0f, 0.001f), 0.455f));
+    result.push_back(std::make_unique<Parameter>("release3", "Voice 3 Release",
+        Range(0.01f, 6.0f, 0.001f, 0.38f), 0.238f, "s"));
     result.push_back(std::make_unique<Parameter>("bowLevel", "Bow Level",
         Range(0.0f, 0.20f, 0.001f), 0.022f));
     result.push_back(std::make_unique<Parameter>("wobble", "Pitch Strain",
@@ -83,7 +99,7 @@ void BowieAudioProcessor::applyFactoryPreset(int presetIndex)
           0.043f, 80.0f, 20000.0f, 0.328f, { 0.443f, 0.459f, 0.590f }, 1.0f },
         { { 6, 5, 1 }, 0.000f, 0.476f, 0.410f, 0.218f,
           0.066f, 80.0f, 20000.0f, 0.328f, { 0.443f, 0.180f, 0.213f }, 1.0f },
-        { { 0, 2, 8 }, 0.118f, 0.867f, 0.557f, 0.218f,
+        { { 13, 12, 7 }, 0.002f, 0.862f, 0.658f, 0.213f,
           0.066f, 80.0f, 2900.0f, 0.328f, { 0.443f, 0.623f, 0.393f }, 1.0f },
         { { 3, 2, 9 }, 2.014f, 0.867f, 0.393f, 1.019f,
           0.108f, 24.8f, 4354.0f, 0.000f, { 0.770f, 0.230f, 0.246f }, 1.0f },
@@ -108,6 +124,27 @@ void BowieAudioProcessor::applyFactoryPreset(int presetIndex)
     setParameter("decay", preset.decay);
     setParameter("sustain", preset.sustain);
     setParameter("release", preset.release);
+    setParameter("attack2", preset.attack);
+    setParameter("decay2", preset.decay);
+    setParameter("sustain2", preset.sustain);
+    setParameter("release2", preset.release);
+    setParameter("attack3", preset.attack);
+    setParameter("decay3", preset.decay);
+    setParameter("sustain3", preset.sustain);
+    setParameter("release3", preset.release);
+    if (presetIndex == 3)
+    {
+        // Fanfare uses the three independent envelopes captured from the
+        // Farfisa / Oboe / Trumpet panel settings.
+        setParameter("attack2", 0.739f);
+        setParameter("decay2", 0.439f);
+        setParameter("sustain2", 0.461f);
+        setParameter("release2", 0.239f);
+        setParameter("attack3", 0.645f);
+        setParameter("decay3", 0.773f);
+        setParameter("sustain3", 0.355f);
+        setParameter("release3", 0.239f);
+    }
     setParameter("bowLevel", preset.bow);
     setParameter("wobble", preset.strain);
     setParameter("cutoff", preset.cutoff);

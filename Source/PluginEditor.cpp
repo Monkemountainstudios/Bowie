@@ -188,6 +188,29 @@ BowieAudioProcessorEditor::BowieAudioProcessorEditor(BowieAudioProcessor& owner)
     configureSlider(voice3Level, voice3LevelLabel, "VOL 3", "voice3Level", voice3LevelAttachment);
     configureSlider(masterLevel, masterLevelLabel, "MASTER", "masterLevel", masterLevelAttachment);
 
+    envelopeVoiceLabel.setText("ENV", juce::dontSendNotification);
+    envelopeVoiceLabel.getProperties().set("bowiePanelLabel", true);
+    envelopeVoiceLabel.setJustificationType(juce::Justification::centredRight);
+    envelopeVoiceLabel.setColour(juce::Label::textColourId, royalBlue.darker(0.62f));
+    envelopeVoiceLabel.setFont(labelTypeface != nullptr
+        ? juce::FontOptions(labelTypeface).withHeight(10.0f)
+        : juce::FontOptions(10.0f).withStyle("Bold"));
+    addAndMakeVisible(envelopeVoiceLabel);
+    for (int index = 0; index < 3; ++index)
+    {
+        auto& button = envelopeVoiceButtons[static_cast<size_t>(index)];
+        button.setButtonText(juce::String(index + 1));
+        button.setClickingTogglesState(true);
+        button.setRadioGroupId(731, juce::dontSendNotification);
+        button.setColour(juce::TextButton::buttonColourId, royalBlue.darker(0.36f));
+        button.setColour(juce::TextButton::buttonOnColourId, lacquerRed.darker(0.08f));
+        button.setColour(juce::TextButton::textColourOffId, ivory.withAlpha(0.72f));
+        button.setColour(juce::TextButton::textColourOnId, ivory);
+        button.onClick = [this, index] { selectEnvelope(index); };
+        addAndMakeVisible(button);
+    }
+    envelopeVoiceButtons[0].setToggleState(true, juce::dontSendNotification);
+
     int imageBytes = 0;
     if (const auto* imageData = BinaryData::getNamedResource("BowieIcon_png", imageBytes))
         brandImage = juce::ImageFileFormat::loadFrom(imageData, static_cast<size_t>(imageBytes));
@@ -303,6 +326,31 @@ void BowieAudioProcessorEditor::configureToneSelector(
                                                     parameterId, selector);
 }
 
+void BowieAudioProcessorEditor::selectEnvelope(int voiceIndex)
+{
+    static constexpr const char* parameterIds[3][4] = {
+        { "attack", "decay", "sustain", "release" },
+        { "attack2", "decay2", "sustain2", "release2" },
+        { "attack3", "decay3", "sustain3", "release3" }
+    };
+    voiceIndex = juce::jlimit(0, 2, voiceIndex);
+
+    // Tear down all four old listeners before connecting the faders to another
+    // voice; this keeps a switch gesture atomic from the host's point of view.
+    attackAttachment.reset();
+    decayAttachment.reset();
+    sustainAttachment.reset();
+    releaseAttachment.reset();
+    attackAttachment = std::make_unique<Attachment>(processor.parameters,
+        parameterIds[voiceIndex][0], attack);
+    decayAttachment = std::make_unique<Attachment>(processor.parameters,
+        parameterIds[voiceIndex][1], decay);
+    sustainAttachment = std::make_unique<Attachment>(processor.parameters,
+        parameterIds[voiceIndex][2], sustain);
+    releaseAttachment = std::make_unique<Attachment>(processor.parameters,
+        parameterIds[voiceIndex][3], release);
+}
+
 void BowieAudioProcessorEditor::updateLayerMenuBrightness()
 {
     const auto update = [](juce::ComboBox& selector, juce::Label& label, double level)
@@ -392,6 +440,10 @@ void BowieAudioProcessorEditor::resized()
     constexpr int menuHeight = 19;
     presetLabel.setBounds(menuLabelX, 16, 54, menuHeight);
     preset.setBounds(menuX, 16, menuWidth, menuHeight);
+
+    envelopeVoiceLabel.setBounds(20, 119, 40, 18);
+    for (int index = 0; index < 3; ++index)
+        envelopeVoiceButtons[static_cast<size_t>(index)].setBounds(64 + index * 32, 118, 28, 20);
 
     juce::ComboBox* selectors[] = { &tone, &tone2, &tone3 };
     juce::Label* selectorLabels[] = { &toneLabel, &tone2Label, &tone3Label };
