@@ -3,6 +3,14 @@
 Thank you for testing Bowie. This beta contains an unsigned standalone app and
 VST3 instrument for Windows and macOS.
 
+## What is new in 0.5.0
+
+- The body palette now includes Harp, Harpsichord, Oboe, Farfisa, and Marimba.
+- Voices 1, 2, and 3 have independent ADSR envelopes, selected with the compact
+  `ENV 1 / 2 / 3` switch.
+- The revised Fanfare preset layers Farfisa, Oboe, and Trumpet with a distinct
+  envelope for each body.
+
 ## Install
 
 ### Windows

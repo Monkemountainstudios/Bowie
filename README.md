@@ -2,7 +2,7 @@
 
 JUCE instrument that treats sampled body tones as if they were being bowed.
 
-> **Beta:** Bowie 0.4.5 is ready for Windows and macOS testing. Builds are
+> **Beta:** Bowie 0.5.0 is ready for Windows and macOS testing. Builds are
 > unsigned; Windows may show a SmartScreen warning and macOS may require
 > control-clicking the app and choosing Open on first launch.
 

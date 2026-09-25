@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 env:
-  BOWIE_VERSION: 0.4.5
+  BOWIE_VERSION: 0.5.0
   JUCE_TAG: 9.0.1
 
 jobs:

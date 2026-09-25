@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(Bowie VERSION 0.4.5 LANGUAGES C CXX)
+project(Bowie VERSION 0.5.0 LANGUAGES C CXX)
 
 set(BOWIE_JUCE_SOURCE_DIR "" CACHE PATH "Path to a JUCE 9.0.1 checkout")
 
@@ -18,7 +18,7 @@ endif()
 add_subdirectory("${BOWIE_JUCE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/JUCE")
 
 juce_add_plugin(Bowie
-    VERSION 0.4.5
+    VERSION 0.5.0
     COMPANY_NAME "MonkeMountainStudios"
     COMPANY_WEBSITE "https://monkemountainstudios.neocities.org"
     BUNDLE_ID "com.monkemountainstudios.bowie"

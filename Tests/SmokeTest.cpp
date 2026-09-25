@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
         const auto target = juce::File::getCurrentWorkingDirectory()
             .getChildFile("build-ninja")
-            .getChildFile("BowieEditorPreview-0.4.5.png");
+            .getChildFile("BowieEditorPreview-0.5.0.png");
         target.deleteFile();
         juce::FileOutputStream stream(target);
         const bool written = stream.openedOk()
